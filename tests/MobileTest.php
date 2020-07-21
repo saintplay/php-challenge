@@ -2,33 +2,51 @@
 
 namespace Tests;
 
+use App\Call;
+use App\Contact;
+use App\Mobile;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
-
-use App\Mobile;
-
 class MobileTest extends TestCase
 {
-	use MockeryPHPUnitIntegration;
-	
-	// public function tearDown() {
-	// 	m::close();
-	// }
-	
-	/** @test */
-	public function it_returns_null_when_name_empty()
-	{
-		$provider = m::mock('App\Interfaces\CarrierInterface');
-		$provider->allows()
-			->makeCall()
-			->andReturn(true);
+    use MockeryPHPUnitIntegration;
 
+    // public function tearDown() {
+    //     m::close();
+    // }
 
-		$mobile = new Mobile($provider);
+    /** @test */
+    public function it_returns_null_when_name_empty()
+    {
+        $provider = m::mock('App\Interfaces\CarrierInterface');
+        $provider->allows()
+            ->makeCall()
+            ->andReturn(true);
 
-		$this->assertNull($mobile->makeCallByName(''));
-	}
+        $mobile = new Mobile($provider);
 
+        $this->assertNull($mobile->makeCallByName(''));
+    }
+
+    /** @test */
+    public function it_returns_call_when_name_is_valid()
+    {
+
+        m::mock('alias:App\Services\ContactService')->shouldReceive([
+            'findByName' => new Contact(),
+            'validateNumber' => true,
+        ]);
+
+        $provider = m::mock('App\Interfaces\CarrierInterface');
+        $provider->shouldReceive([
+            'makeCall' => new Call(),
+            'dialContact' => true,
+        ]);
+
+        $mobile = new Mobile($provider);
+
+        $this->assertInstanceOf('App\Call', $mobile->makeCallByName('User Test'));
+    }
 }
