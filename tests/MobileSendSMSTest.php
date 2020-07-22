@@ -10,7 +10,7 @@ use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
-class MobileTest extends TestCase
+class MobileSendSMSTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 

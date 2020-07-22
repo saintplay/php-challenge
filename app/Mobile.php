@@ -32,4 +32,20 @@ class Mobile
         return $this->provider->makeCall();
     }
 
+    public function sendSMSByName($number, $body)
+    {
+        if (empty($name)) {
+            return;
+        }
+
+        $contact = ContactService::findByName($name);
+
+        if (empty($contact)) {
+            throw new NoContactFoundedException($name, 400);
+        }
+
+        $this->provider->dialContact($contact);
+        return $this->provider->makeCall();
+    }
+
 }
