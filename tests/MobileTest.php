@@ -4,6 +4,7 @@ namespace Tests;
 
 use App\Call;
 use App\Contact;
+use App\Exceptions\NoContactFoundedException;
 use App\Mobile;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
@@ -48,5 +49,26 @@ class MobileTest extends TestCase
         $mobile = new Mobile($provider);
 
         $this->assertInstanceOf('App\Call', $mobile->makeCallByName('User Test'));
+    }
+
+    /** @test */
+    public function it_returns_exception_when_no_contact_is_founded()
+    {
+
+        m::mock('alias:App\Services\ContactService')->shouldReceive([
+            'findByName' => "",
+            'validateNumber' => true,
+        ]);
+
+        $provider = m::mock('App\Interfaces\CarrierInterface');
+        $provider->shouldReceive([
+            'makeCall' => new Call(),
+            'dialContact' => true,
+        ]);
+
+        $mobile = new Mobile($provider);
+
+        $this->expectException(NoContactFoundedException::class);
+        $mobile->makeCallByName('User Test');
     }
 }
