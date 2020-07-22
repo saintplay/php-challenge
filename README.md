@@ -1,5 +1,7 @@
 # Chicho challenge
 
+![success](/TEST_SUCCESS.png?raw=true "success")
+
 ### Questions
 
 - Can you add support for two mobile carriers? How would you accomplish that?
