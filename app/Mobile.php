@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Exceptions\NoContactFoundedException;
+use App\Exceptions\NoValidNumberException;
 use App\Interfaces\CarrierInterface;
 use App\Services\ContactService;
 
@@ -32,20 +33,19 @@ class Mobile
         return $this->provider->makeCall();
     }
 
-    public function sendSMSByName($number, $body)
+    public function sendSMSByNumber($number, $body)
     {
-        if (empty($name)) {
+        if (empty($number) || empty($body)) {
             return;
         }
 
-        $contact = ContactService::findByName($name);
+        $is_valid = ContactService::validateNumber($number);
 
-        if (empty($contact)) {
-            throw new NoContactFoundedException($name, 400);
+        if (!$is_valid) {
+            throw new NoValidNumberException($number, 400);
         }
 
-        $this->provider->dialContact($contact);
-        return $this->provider->makeCall();
+        return $this->provider->sendMessage($number, $body);
     }
 
 }

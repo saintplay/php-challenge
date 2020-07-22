@@ -2,9 +2,8 @@
 
 namespace Tests;
 
-use App\Call;
-use App\Contact;
-use App\Exceptions\NoContactFoundedException;
+use App\Exceptions\NoValidNumberException;
+use App\Message;
 use App\Mobile;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +18,7 @@ class MobileSendSMSTest extends TestCase
     // }
 
     /** @test */
-    public function it_returns_null_when_name_empty()
+    public function it_returns_null_when_number_empty()
     {
         $provider = m::mock('App\Interfaces\CarrierInterface');
         $provider->allows()
@@ -28,47 +27,56 @@ class MobileSendSMSTest extends TestCase
 
         $mobile = new Mobile($provider);
 
-        $this->assertNull($mobile->makeCallByName(''));
+        $this->assertNull($mobile->sendSMSByNumber('', "Hola"));
     }
 
     /** @test */
-    public function it_returns_call_when_name_is_valid()
+    public function it_returns_null_when_body_empty()
+    {
+        $provider = m::mock('App\Interfaces\CarrierInterface');
+        $provider->allows()
+            ->makeCall()
+            ->andReturn(true);
+
+        $mobile = new Mobile($provider);
+
+        $this->assertNull($mobile->sendSMSByNumber('+51966666666', ""));
+    }
+
+    /** @test */
+    public function it_returns_message_when_number_and_body_is_valid()
     {
 
         m::mock('alias:App\Services\ContactService')->shouldReceive([
-            'findByName' => new Contact(),
             'validateNumber' => true,
         ]);
 
         $provider = m::mock('App\Interfaces\CarrierInterface');
         $provider->shouldReceive([
-            'makeCall' => new Call(),
-            'dialContact' => true,
+            'sendMessage' => new Message(),
         ]);
 
         $mobile = new Mobile($provider);
 
-        $this->assertInstanceOf('App\Call', $mobile->makeCallByName('User Test'));
+        $this->assertInstanceOf('App\Message', $mobile->sendSMSByNumber('User Test', 'Hola'));
     }
 
     /** @test */
-    public function it_returns_exception_when_no_contact_is_founded()
+    public function it_returns_exception_when_number_is_not_valid()
     {
 
         m::mock('alias:App\Services\ContactService')->shouldReceive([
-            'findByName' => "",
-            'validateNumber' => true,
+            'validateNumber' => false,
         ]);
 
         $provider = m::mock('App\Interfaces\CarrierInterface');
         $provider->shouldReceive([
-            'makeCall' => new Call(),
-            'dialContact' => true,
+            'sendMessage' => new Message(),
         ]);
 
         $mobile = new Mobile($provider);
 
-        $this->expectException(NoContactFoundedException::class);
-        $mobile->makeCallByName('User Test');
+        $this->expectException(NoValidNumberException::class);
+        $mobile->sendSMSByNumber('User Test', "Hola");
     }
 }
